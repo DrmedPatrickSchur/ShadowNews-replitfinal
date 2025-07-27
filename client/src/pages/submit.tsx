@@ -16,18 +16,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+/**
+ * Story Submission Form Validation Schema
+ * 
+ * Defines validation rules for story submissions with the following requirements:
+ * - Title: 3-100 characters (required)
+ * - URL: Valid URL or empty string (optional)
+ * - Text: Max 40,000 characters (optional)
+ * - Type: Story type classification (defaults to "story")
+ * 
+ * Business rule: Either URL or text must be provided (but not necessarily both).
+ * This allows for both link submissions and text-only posts.
+ */
 const formSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(100, "Title cannot exceed 100 characters"),
-  url: z.string().url("Please enter a valid URL").or(z.string().length(0)),
+  url: z.string().url("Please enter a valid URL").or(z.string().length(0)), // URL or empty string
   text: z.string().max(40000, "Text cannot exceed 40000 characters"),
   type: z.string().default("story"),
 }).refine(data => data.url !== "" || data.text !== "", {
   message: "Either URL or text must be provided",
-  path: ["text"]
+  path: ["text"] // Attach error to text field
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
+/**
+ * Story Submission Page Component
+ * 
+ * Provides a comprehensive form for users to submit new stories to ShadowNews.
+ * This page handles both URL submissions (links to external content) and text
+ * submissions (original content like "Ask ShadowNews" or "Show ShadowNews" posts).
+ * 
+ * Features:
+ * - Authentication requirement check
+ * - Form validation with real-time feedback
+ * - Support for both URL and text submissions
+ * - Story type classification
+ * - Automatic navigation to story after successful submission
+ * - Loading states and error handling
+ * 
+ * The form uses react-hook-form with Zod validation for type-safe form handling
+ * and TanStack Query for API state management.
+ */
 export default function Submit() {
   const { toast } = useToast();
   const queryClient = useQueryClient();

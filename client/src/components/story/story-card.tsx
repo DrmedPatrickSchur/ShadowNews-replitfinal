@@ -10,38 +10,82 @@ import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * Story Card Component Props
+ */
 interface StoryCardProps {
-  story: Story;
-  author: string;
+  story: Story;   // Complete story object with metadata
+  author: string; // Author username for display
 }
 
+/**
+ * Individual Story Card Component
+ * 
+ * Displays a single story in the list format similar to Hacker News.
+ * This is the primary way users interact with story content.
+ * 
+ * Features:
+ * - Story title with external link handling
+ * - Author attribution and submission timestamp
+ * - Points display with upvote functionality
+ * - Comment count and navigation
+ * - URL hostname extraction for external links
+ * - Responsive design for mobile and desktop
+ * 
+ * Voting system:
+ * - Optimistic updates for immediate UI feedback
+ * - Authenticated users only
+ * - One vote per user per story
+ * - Cache invalidation for consistency
+ * 
+ * @param story - Story object containing all story data
+ * @param author - Username of the story submitter
+ */
 export function StoryCard({ story, author }: StoryCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Local state for optimistic UI updates
   const [pointCount, setPointCount] = useState(story.points);
   const [hasVoted, setHasVoted] = useState(false);
   
-  // Extract hostname from URL
+  /**
+   * Extract hostname from URL for display
+   * 
+   * Shows users the source domain for external links (e.g., "github.com").
+   * Removes "www." prefix for cleaner display.
+   * 
+   * @param url - Full URL string or null
+   * @returns Clean hostname or null if invalid/missing URL
+   */
   const getHostname = (url: string | null) => {
     if (!url) return null;
     try {
       const hostname = new URL(url).hostname;
-      return hostname.replace(/^www\./, "");
+      return hostname.replace(/^www\./, ""); // Remove www prefix
     } catch (e) {
-      return null;
+      return null; // Invalid URL
     }
   };
 
   const hostname = getHostname(story.url || null);
   
+  /**
+   * Upvote Mutation
+   * 
+   * Handles story upvoting with optimistic updates and error handling.
+   * Updates local state immediately for responsive UI, then syncs with server.
+   */
   const upvoteMutation = useMutation({
     mutationFn: async () => {
       return apiRequest("POST", "/api/vote", { storyId: story.id });
     },
     onSuccess: () => {
+      // Optimistic update: increment points and mark as voted
       setPointCount(prev => prev + 1);
       setHasVoted(true);
+      // Invalidate story queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/stories"] });
     },
     onError: (error) => {

@@ -11,30 +11,70 @@ import { LoginModal } from "@/components/auth/login-modal";
 import { RegisterModal } from "@/components/auth/register-modal";
 import { SubmitStoryModal } from "@/components/story/submit-story-modal";
 
+/**
+ * ShadowNews Header Component
+ * 
+ * The main navigation header that appears on every page. Provides:
+ * 
+ * 1. Branding and navigation
+ *    - ShadowNews logo/wordmark
+ *    - Primary navigation links (Top, New, Ask, Show, Jobs)
+ *    - Active link highlighting
+ * 
+ * 2. User functionality
+ *    - Search functionality (placeholder for future implementation)
+ *    - Dark/light theme toggle
+ *    - Authentication modals (login/register)
+ *    - User menu when authenticated
+ * 
+ * 3. Responsive design
+ *    - Mobile hamburger menu
+ *    - Adaptive layout for different screen sizes
+ *    - Auto-closes mobile menu on navigation
+ * 
+ * The header adapts its content based on authentication state and
+ * provides quick access to core application features.
+ */
 export function Header() {
   const [location] = useLocation();
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
+  
+  // Component state for UI interactions
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
 
+  /**
+   * Toggle mobile menu visibility
+   */
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  /**
+   * Toggle between light and dark themes
+   */
   const toggleDarkMode = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
+  /**
+   * Handle search form submission
+   * TODO: Implement actual search functionality
+   */
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement search functionality
+    // Placeholder for search implementation
     console.log("Searching for:", searchQuery);
   };
 
+  /**
+   * Primary navigation links configuration
+   * Matches Hacker News-style navigation structure
+   */
   const navLinks = [
     { href: "/", label: "Top" },
     { href: "/new", label: "New" },
@@ -44,8 +84,11 @@ export function Header() {
     { href: "/jobs", label: "Jobs" },
   ];
 
+  /**
+   * Auto-close mobile menu when user navigates to a new page
+   * Improves mobile UX by hiding the menu after selection
+   */
   useEffect(() => {
-    // Close mobile menu when location changes
     setMobileMenuOpen(false);
   }, [location]);
 
